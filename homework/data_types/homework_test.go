@@ -1,6 +1,7 @@
 package main
 
 import (
+	// "fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,7 +10,20 @@ import (
 // go test -v homework_test.go
 
 func ToLittleEndian(number uint32) uint32 {
-	return 0 // need to implement
+	var result uint32 = 0x00000000
+
+	for i := 0; i < 4; i++ {
+		shift := i * 8
+		mask := uint32(0x000000FF << shift)
+		curByte := uint8(number & mask >> shift)
+		// fmt.Printf("%02x\n", curByte)
+
+		reverseShift := (3 - i) * 8
+		result |= uint32(curByte) << reverseShift
+		// fmt.Printf("%08x\n\n", result)
+	}
+
+	return result
 }
 
 func TestСonversion(t *testing.T) {
