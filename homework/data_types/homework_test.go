@@ -12,7 +12,7 @@ func ToLittleEndian(number uint32) uint32 {
 	var result uint32 = 0x00000000
 
 	for i := 0; i < 4; i++ {
-		result |= (number & (0x000000FF << (i * 8)) >> (i * 8)) << ((3 - i) * 8)
+		result |= ((number >> (i * 8)) & 0x000000FF) << ((3 - i) * 8)
 	}
 
 	return result
