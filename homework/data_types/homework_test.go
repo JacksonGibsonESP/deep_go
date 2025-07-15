@@ -13,14 +13,7 @@ func ToLittleEndian(number uint32) uint32 {
 	var result uint32 = 0x00000000
 
 	for i := 0; i < 4; i++ {
-		shift := i * 8
-		mask := uint32(0x000000FF << shift)
-		curByte := uint8(number & mask >> shift)
-		// fmt.Printf("%02x\n", curByte)
-
-		reverseShift := (3 - i) * 8
-		result |= uint32(curByte) << reverseShift
-		// fmt.Printf("%08x\n\n", result)
+		result |= (number & (0x000000FF << (i * 8)) >> (i * 8)) << ((3 - i) * 8)
 	}
 
 	return result
