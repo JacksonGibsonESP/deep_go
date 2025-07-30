@@ -33,13 +33,7 @@ func (q *CircularQueue) Push(value int) bool {
 	if q.Full() {
 		return false
 	}
-
-	if q.rear+1 == len(q.values) {
-		q.rear = (q.rear + 1) % len(q.values)
-	} else {
-		q.rear += 1
-	}
-
+	q.rear = (q.rear + 1) % len(q.values)
 	q.values[q.rear] = value
 	q.size++
 	return true
@@ -57,11 +51,7 @@ func (q *CircularQueue) Pop() bool {
 		return true
 	}
 
-	if q.front+1 == len(q.values) {
-		q.front = (q.front + 1) % len(q.values)
-	} else {
-		q.front += 1
-	}
+	q.front = (q.front + 1) % len(q.values)
 	q.size--
 	return true
 }
