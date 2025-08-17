@@ -26,20 +26,20 @@ func NewContainer() *Container {
 	return &Container{make(map[string]any)}
 }
 
-func (c *Container) RegisterType(name string, constructor interface{}) {
-	c.dependencies[name] = constructor
+func (c *Container) RegisterType(name string, constructor interface{}) error {
+	_, good := constructor.(func() interface{})
+	if good {
+		c.dependencies[name] = constructor
+		return nil
+	} else {
+		return fmt.Errorf("Constructor argument is not a function")
+	}
 }
 
 func (c *Container) Resolve(name string) (interface{}, error) {
 	value, ok := c.dependencies[name]
-
 	if ok {
-		constructor, good := value.(func() interface{})
-		if good {
-			return constructor(), nil
-		} else {
-			return nil, fmt.Errorf("Constructor is not a function")
-		}
+		return value.(func() interface{})(), nil
 	} else {
 		return nil, fmt.Errorf("No dependency with name %s", name)
 	}
