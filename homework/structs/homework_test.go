@@ -36,27 +36,35 @@ func WithMana(mana int) func(*GamePerson) {
 	}
 }
 
+const healthOffset = 10
+
 func WithHealth(health int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		person.params1 |= uint32(health) << 10
+		person.params1 |= uint32(health) << healthOffset
 	}
 }
+
+const respectOffset = 20
 
 func WithRespect(respect int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		person.params1 |= uint32(respect) << 20
+		person.params1 |= uint32(respect) << respectOffset
 	}
 }
+
+const strengthOffset = 24
 
 func WithStrength(strength int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		person.params1 |= uint32(strength) << 24
+		person.params1 |= uint32(strength) << strengthOffset
 	}
 }
 
+const experienceOffset = 28
+
 func WithExperience(experience int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		person.params1 |= uint32(experience) << 28
+		person.params1 |= uint32(experience) << experienceOffset
 	}
 }
 
@@ -66,27 +74,36 @@ func WithLevel(level int) func(*GamePerson) {
 	}
 }
 
+const oneBitMask = 0b1
+const houseOffset = 4
+
 func WithHouse() func(*GamePerson) {
 	return func(person *GamePerson) {
-		person.params2 |= 0b1_0000
+		person.params2 |= oneBitMask << houseOffset
 	}
 }
+
+const gunOffset = 5
 
 func WithGun() func(*GamePerson) {
 	return func(person *GamePerson) {
-		person.params2 |= 0b10_0000
+		person.params2 |= oneBitMask << gunOffset
 	}
 }
+
+const familyOffset = 6
 
 func WithFamily() func(*GamePerson) {
 	return func(person *GamePerson) {
-		person.params2 |= 0b100_0000
+		person.params2 |= oneBitMask << familyOffset
 	}
 }
 
+const personTypeOffset = 7
+
 func WithType(personType int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		person.params2 |= uint16(personType) << 8
+		person.params2 |= uint16(personType) << personTypeOffset
 	}
 }
 
@@ -140,7 +157,7 @@ func (p *GamePerson) Name() string {
 	for n < len(p.name) && p.name[n] != 0 {
 		n++
 	}
-	return string(p.name[:n])
+	return unsafe.String(unsafe.SliceData(p.name[:n]), n)
 }
 
 func (p *GamePerson) X() int {
@@ -159,50 +176,60 @@ func (p *GamePerson) Gold() int {
 	return int(p.gold)
 }
 
+const tenBitsMask = 0b1111111111
+
 func (p *GamePerson) Mana() int {
-	manaBitMask := uint32(0b1111111111)
+	manaBitMask := uint32(tenBitsMask)
 	return int(p.params1 & manaBitMask)
 }
 
 func (p *GamePerson) Health() int {
-	healthBitMask := uint32(0b1111111111 << 10)
-	return int(p.params1 & healthBitMask >> 10)
+	healthBitMask := uint32(tenBitsMask << healthOffset)
+	return int(p.params1 & healthBitMask >> healthOffset)
 }
 
+const fourBitsMask = 0b1111
+
 func (p *GamePerson) Respect() int {
-	respectBitMask := uint32(0b1111 << 20)
-	return int(p.params1 & respectBitMask >> 20)
+	respectBitMask := uint32(fourBitsMask << respectOffset)
+	return int(p.params1 & respectBitMask >> respectOffset)
 }
 
 func (p *GamePerson) Strength() int {
-	strengthBitMask := uint32(0b1111 << 24)
-	return int(p.params1 & strengthBitMask >> 24)
+	strengthBitMask := uint32(fourBitsMask << strengthOffset)
+	return int(p.params1 & strengthBitMask >> strengthOffset)
 }
 
 func (p *GamePerson) Experience() int {
-	expereinceBitMask := uint32(0b1111 << 24)
-	return int(p.params1 & expereinceBitMask >> 24)
+	expereinceBitMask := uint32(fourBitsMask << experienceOffset)
+	return int(p.params1 & expereinceBitMask >> experienceOffset)
 }
 
 func (p *GamePerson) Level() int {
-	levelBitMask := uint16(0b1111)
+	levelBitMask := uint16(fourBitsMask)
 	return int(p.params2 & levelBitMask)
 }
 
 func (p *GamePerson) HasHouse() bool {
-	return p.params2&0b1_0000 == 0b1_0000
+	const houseMask = uint16(oneBitMask << houseOffset)
+	return p.params2&houseMask == houseMask
 }
 
 func (p *GamePerson) HasGun() bool {
-	return p.params2&0b10_0000 == 0b10_0000
+	const gunMask = uint16(oneBitMask << gunOffset)
+	return p.params2&gunMask == gunMask
 }
 
 func (p *GamePerson) HasFamily() bool {
-	return p.params2&0b100_0000 == 0b100_0000
+	const familyMask = uint16(oneBitMask << familyOffset)
+	return p.params2&familyMask == familyMask
 }
 
+const twoBitsMask = 0b11
+
 func (p *GamePerson) Type() int {
-	return int(p.params2 & (0b11 << 7))
+	const personTypeMask = uint16(twoBitsMask << personTypeOffset)
+	return int(p.params2 & personTypeMask >> personTypeOffset)
 }
 
 func TestGamePerson(t *testing.T) {
