@@ -1,6 +1,9 @@
 package main
 
 import (
+	"reflect"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -16,8 +19,58 @@ type Person struct {
 }
 
 func Serialize(person Person) string {
-	// need to implement
-	return ""
+	var builder strings.Builder
+	objType := reflect.TypeOf(person)
+	objValue := reflect.ValueOf(person)
+
+	for i := range objType.NumField() {
+		fieldType := objType.Field(i)
+		fieldTag := fieldType.Tag.Get("properties")
+
+		fieldValue := objValue.Field(i)
+		tagSplits := strings.Split(fieldTag, ",")
+		if len(tagSplits) > 1 &&
+			tagSplits[1] == "omitempty" &&
+			isEmpty(fieldValue) {
+			continue
+		}
+
+		strValue := valueToString(fieldValue)
+		propertyName := tagSplits[0]
+
+		builder.WriteString(propertyName)
+		builder.WriteString("=")
+		builder.WriteString(strValue)
+		builder.WriteString("\n")
+	}
+
+	return strings.TrimSpace(builder.String())
+}
+
+func isEmpty(v reflect.Value) bool {
+	switch v.Kind() {
+	case reflect.String:
+		return strings.TrimSpace(v.String()) == ""
+	case reflect.Int:
+		return v.Int() == 0
+	case reflect.Bool:
+		return false
+	default:
+		return false
+	}
+}
+
+func valueToString(v reflect.Value) string {
+	switch v.Kind() {
+	case reflect.String:
+		return strings.TrimSpace(v.String())
+	case reflect.Int:
+		return strconv.FormatInt(v.Int(), 10)
+	case reflect.Bool:
+		return strconv.FormatBool(v.Bool())
+	default:
+		return ""
+	}
 }
 
 func TestSerialization(t *testing.T) {
