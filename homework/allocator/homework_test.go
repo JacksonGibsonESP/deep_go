@@ -11,7 +11,35 @@ import (
 // go test -v homework_test.go
 
 func Defragment(memory []byte, pointers []unsafe.Pointer) {
-	// need to implement
+	if len(pointers) == 0 {
+		return
+	}
+
+	pointerMap := make(map[uintptr]bool)
+	for _, ptr := range pointers {
+		pointerMap[uintptr(ptr)] = true // for fast checks of byte allocation
+	}
+
+	// mark bytes
+	var allocated []byte
+	var free []byte
+	for i := range len(memory) {
+		addr := uintptr(unsafe.Pointer(&memory[i]))
+		if pointerMap[addr] {
+			allocated = append(allocated, memory[i])
+		} else {
+			free = append(free, memory[i])
+		}
+	}
+
+	// sweep bytes
+	copy(memory, allocated)
+	copy(memory[len(allocated):], free)
+
+	//update pointers
+	for i := range len(allocated) {
+		pointers[i] = unsafe.Pointer(&memory[i])
+	}
 }
 
 func TestDefragmentation(t *testing.T) {
