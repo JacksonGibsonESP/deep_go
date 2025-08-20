@@ -15,30 +15,15 @@ func Defragment(memory []byte, pointers []unsafe.Pointer) {
 		return
 	}
 
-	pointerMap := make(map[uintptr]bool)
-	for _, ptr := range pointers {
-		pointerMap[uintptr(ptr)] = true // for fast checks of byte allocation
-	}
+	var start = uintptr(unsafe.Pointer(&memory[0]))
+	for i := range len(pointers) {
+		memory[i] = *(*byte)(pointers[i])
 
-	// mark bytes
-	var allocated []byte
-	var free []byte
-	for i := range len(memory) {
-		addr := uintptr(unsafe.Pointer(&memory[i]))
-		if pointerMap[addr] {
-			allocated = append(allocated, memory[i])
-		} else {
-			free = append(free, memory[i])
+		offset := int(uintptr(pointers[i]) - start)
+		if i != offset {
+			memory[offset] = 0
+			pointers[i] = unsafe.Pointer(&memory[i])
 		}
-	}
-
-	// sweep bytes
-	copy(memory, allocated)
-	copy(memory[len(allocated):], free)
-
-	//update pointers
-	for i := range len(allocated) {
-		pointers[i] = unsafe.Pointer(&memory[i])
 	}
 }
 
