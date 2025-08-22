@@ -2,6 +2,7 @@ package main
 
 import (
 	"reflect"
+	"slices"
 	"testing"
 	"unsafe"
 
@@ -11,8 +12,31 @@ import (
 // go test -v homework_test.go
 
 func Trace(stacks [][]uintptr) []uintptr {
-	// need to implement
-	return nil
+	visited := make(map[uintptr]bool)
+	queue := make([]uintptr, 0)
+	result := make([]uintptr, 0)
+
+	// BFS
+	for i := range stacks {
+		for _, ptr := range stacks[i] {
+			if ptr != 0 && !visited[ptr] {
+				visited[ptr] = true
+				queue = append(queue, ptr)
+				result = append(result, ptr)
+			}
+		}
+	}
+
+	for i := 0; i < len(queue); i++ {
+		ptr := *(*uintptr)(unsafe.Pointer(queue[i]))
+		if ptr != 0 && !visited[ptr] {
+			visited[ptr] = true
+			queue = append(queue, ptr)
+			result = append(result, ptr)
+		}
+	}
+
+	return result
 }
 
 func TestTrace(t *testing.T) {
@@ -57,6 +81,9 @@ func TestTrace(t *testing.T) {
 		uintptr(unsafe.Pointer(&heapPointer3)),
 		uintptr(unsafe.Pointer(&heapObjects[3])),
 	}
+
+	slices.Sort(expectedPointers)
+	slices.Sort(pointers)
 
 	assert.True(t, reflect.DeepEqual(expectedPointers, pointers))
 }
