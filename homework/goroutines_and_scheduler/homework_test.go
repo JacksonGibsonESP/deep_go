@@ -14,7 +14,7 @@ type TaskHeap struct {
 
 func NewHeap() TaskHeap {
 	return TaskHeap{
-		tasks:     make([]*Task, 0),
+		tasks:     make([]*Task, 0, 20),
 		positions: make(map[int]int),
 	}
 }
